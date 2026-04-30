@@ -184,7 +184,7 @@ class ExtractorLink:
     url: str
     referer: str
     quality: int
-    type: ExtractorLinkType
+    type: ExtractorLinkType = ExtractorLinkType.VIDEO
     headers: Dict[str, str] = field(default_factory=dict)
     extractorData: Optional[str] = None
 

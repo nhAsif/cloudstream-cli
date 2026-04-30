@@ -59,12 +59,16 @@ async def search_logic(query: str):
     selected_choice = answers['result']
     selected_result = choice_map[selected_choice]
     
-    await info_logic(selected_result.url)
+    await info_logic(selected_result.url, api_name=selected_result.apiName)
 
-async def info_logic(url: str):
+async def info_logic(url: str, api_name: Optional[str] = None):
     manager = get_manager()
+    details = None
     with console.status("[bold green]Loading details..."):
-        details = await manager.load(url)
+        if api_name and api_name in manager.providers:
+            details = await manager.providers[api_name].load(url)
+        else:
+            details = await manager.load(url)
     
     if not details:
         console.print("[bold red]Failed to load details.[/bold red]")

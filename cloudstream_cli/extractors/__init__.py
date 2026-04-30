@@ -2,7 +2,7 @@ from typing import List
 from ..base import ExtractorApi
 
 from .streamsb import StreamSB, Sblona, Sbrapid, Sbspeed
-from .hubcloud import HubCloud, HubDrive, KatDrive, NewsDrive, GdFlix
+from .hubcloud import HubCloud, HubDrive, KatDrive, NewsDrive, GdFlix, HubCloud2, HubCloud3, HubStream
 from .hubcdn import HUBCDN
 from .xcloud import Xcloud, XcloudC
 from .plextream import Plextream
@@ -18,7 +18,7 @@ from .mixdrop import MixDrop, MixDropPs, Mdy, MxDropTo
 def get_extractors() -> List[ExtractorApi]:
     return [
         StreamSB(), Sblona(), Sbrapid(), Sbspeed(),
-        HubCloud(), HubDrive(), KatDrive(), NewsDrive(), GdFlix(),
+        HubCloud(), HubDrive(), KatDrive(), NewsDrive(), GdFlix(), HubCloud2(), HubCloud3(), HubStream(),
         HUBCDN(),
         Xcloud(), XcloudC(),
         Plextream(),

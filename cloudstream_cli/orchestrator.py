@@ -97,7 +97,9 @@ class ProviderManager:
         # Iterate in reverse order so newer registered extractors take priority
         for extractor in reversed(self.extractors):
             extractor_url_stripped = strip_schema(extractor.main_url.lower())
-            if compare_url.startswith(extractor_url_stripped):
+            
+            # Check for exact prefix match or if the domain is contained in the URL
+            if compare_url.startswith(extractor_url_stripped) or extractor_url_stripped in compare_url:
                 try:
                     await extractor.get_url(
                         current_url, 

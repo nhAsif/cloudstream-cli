@@ -55,13 +55,13 @@ async def get_redirect_links(url: str, session: Optional[Session] = None) -> str
             
         # Replicate: decodedString = base64Decode(pen(base64Decode(base64Decode(combinedString))))
         # base64Decode(combinedString)
-        step1 = base64.b64decode(combined).decode('utf-8', errors='ignore')
+        step1 = base64_decode(combined)
         # base64Decode(step1)
-        step2 = base64.b64decode(step1).decode('utf-8', errors='ignore')
+        step2 = base64_decode(step1)
         # pen (rot13)
         step3 = rot13(step2)
         # base64Decode
-        decoded_json_str = base64.b64decode(step3).decode('utf-8', errors='ignore')
+        decoded_json_str = base64_decode(step3)
         
         import json
         data_json = json.loads(decoded_json_str)

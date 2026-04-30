@@ -6,7 +6,7 @@ from ..network import Session
 
 class HubCloud(ExtractorApi):
     name: str = "Hub-Cloud"
-    main_url: str = "https://hubcloud.foo"
+    main_url: str = "https://hubcloud.click"
     
     async def get_url(self, url: str, referer: Optional[str], callback: Callable[[ExtractorLink], None], subtitle_callback: Callable[[SubtitleFile], None]):
         async with Session(verify=False) as session:
@@ -77,3 +77,6 @@ class HubDrive(HubCloud): name = "Hubdrive"; main_url = "https://hubdrive.space"
 class KatDrive(HubCloud): name = "KatDrive"; main_url = "https://katdrive.info"
 class NewsDrive(HubCloud): name = "NewsDrive"; main_url = "https://newsdrive.in"
 class GdFlix(HubCloud): name = "GdFlix"; main_url = "https://gdflix.cfd"
+class HubCloud2(HubCloud): name = "HubCloud2"; main_url = "https://hubcloud.foo"
+class HubCloud3(HubCloud): name = "HubCloud3"; main_url = "https://hubcloud.club"
+class HubStream(HubCloud): name = "HubStream"; main_url = "https://hubstream.click"

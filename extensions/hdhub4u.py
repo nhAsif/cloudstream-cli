@@ -26,7 +26,7 @@ class HDhub4uProvider(MainAPI):
     DOMAINS_URL = "https://raw.githubusercontent.com/phisher98/TVVVV/refs/heads/main/domains.json"
 
     def __init__(self, session: Optional[Session] = None):
-        self._session = session or Session()
+        self._session = session or Session(verify=False)
         self.headers = {
             "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36 Edg/131.0.0.0",
             "Cookie": "xla=s4t"
