@@ -78,7 +78,7 @@ class HDhub4uProvider(MainAPI):
             doc = hit.get("document", {})
             results.append(MovieSearchResponse(
                 name=doc.get("post_title"),
-                url=doc.get("permalink"),
+                url=fix_url(doc.get("permalink"), self.main_url),
                 apiName=self.name,
                 type=TvType.Movie,
                 posterUrl=doc.get("post_thumbnail"),
