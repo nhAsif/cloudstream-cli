@@ -1,0 +1,6 @@
+httpx
+typer
+selectolax
+python-inquirer
+rich
+pycryptodome
