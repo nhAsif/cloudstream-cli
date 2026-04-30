@@ -145,6 +145,105 @@ class MixDropBz(MixDrop): main_url = "https://mixdrop.bz"
 class MixDropAg(MixDrop): main_url = "https://mixdrop.ag"
 class MixDropCh(MixDrop): main_url = "https://mixdrop.ch"
 
+class HubCloud(ExtractorApi):
+    name: str = "HubCloud"
+    main_url: str = "https://hubcloud.club"
+    
+    async def get_url(
+        self,
+        url: str,
+        referer: Optional[str],
+        callback: Callable[[ExtractorLink], None],
+        subtitle_callback: Callable[[SubtitleFile], None]
+    ) -> None:
+        async with Session(verify=False) as session:
+            resp = await session.get(url)
+            if resp.status_code != 200:
+                return
+                
+            # Ported logic from Kotlin HubCloud extractor
+            # Look for "Download" or "Stream" links
+            parser = session.parse_html(resp.text)
+            
+            # Case 1: Direct link in a button
+            for a in parser.css("a.btn, a.button"):
+                href = a.attributes.get("href")
+                text = a.text().lower()
+                if href and ("download" in text or "stream" in text or "watch" in text):
+                    if "hubcloud" in href or "hubdrive" in href or "katdrive" in href:
+                        # Follow redirect
+                        await self.get_url(href, url, callback, subtitle_callback)
+                    elif ".m3u8" in href or ".mp4" in href or ".mkv" in href:
+                        callback(ExtractorLink(
+                            source=self.name,
+                            name=self.name,
+                            url=href,
+                            referer=url,
+                            quality=0,
+                            type=ExtractorLinkType.VIDEO
+                        ))
+
+            # Case 2: Redirect script
+            from .utils import get_redirect_links
+            resolved = await get_redirect_links(url, session)
+            if resolved and resolved != url:
+                if ".m3u8" in resolved or ".mp4" in resolved or ".mkv" in resolved:
+                    callback(ExtractorLink(
+                        source=self.name,
+                        name=self.name,
+                        url=resolved,
+                        referer=url,
+                        quality=0,
+                        type=ExtractorLinkType.VIDEO
+                    ))
+                else:
+                    await self.get_url(resolved, url, callback, subtitle_callback)
+
+class HubDrive(HubCloud): main_url = "https://hubdrive.space"
+class KatDrive(HubCloud): main_url = "https://katdrive.info"
+class NewsDrive(HubCloud): main_url = "https://newsdrive.in"
+class GdFlix(HubCloud): main_url = "https://gdflix.cfd"
+
+class Videasy(ExtractorApi):
+    name: str = "Videasy"
+    main_url: str = "https://player.videasy.net"
+    
+    async def get_url(
+        self,
+        url: str,
+        referer: Optional[str],
+        callback: Callable[[ExtractorLink], None],
+        subtitle_callback: Callable[[SubtitleFile], None]
+    ) -> None:
+        callback(ExtractorLink(
+            source=self.name,
+            name=self.name,
+            url=url,
+            referer=referer,
+            quality=0,
+            type=ExtractorLinkType.VIDEO
+        ))
+
+class Autoembed(ExtractorApi):
+    name: str = "Autoembed"
+    main_url: str = "https://player.autoembed.cc"
+    
+    async def get_url(
+        self,
+        url: str,
+        referer: Optional[str],
+        callback: Callable[[ExtractorLink], None],
+        subtitle_callback: Callable[[SubtitleFile], None]
+    ) -> None:
+        callback(ExtractorLink(
+            source=self.name,
+            name=self.name,
+            url=url,
+            referer=referer,
+            quality=0,
+            type=ExtractorLinkType.VIDEO
+        ))
+
 # List of all extractor instances
 extractor_apis: List[ExtractorApi] = [
     StreamSB(), Sblona(), Lvturbo(), Sbrapid(), Sbface(), Sbsonic(),
@@ -154,7 +253,9 @@ extractor_apis: List[ExtractorApi] = [
     StreamSB5(), StreamSB6(), StreamSB7(), StreamSB8(), StreamSB9(),
     StreamSB10(), StreamSB11(), Sblongvu(),
     MixDrop(), MixDropPs(), Mdy(), MxDropTo(), MixDropSi(),
-    MixDropBz(), MixDropAg(), MixDropCh()
+    MixDropBz(), MixDropAg(), MixDropCh(),
+    HubCloud(), HubDrive(), KatDrive(), NewsDrive(), GdFlix(),
+    Videasy(), Autoembed()
 ]
 
 def get_extractors() -> List[ExtractorApi]:

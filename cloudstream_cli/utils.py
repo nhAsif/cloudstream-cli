@@ -93,7 +93,55 @@ class JsUnpacker:
         return "p,a,c,k,e,d" in self.packed_js
 
     def unpack(self) -> str:
-        # Simplified implementation of P.A.C.K.E.R. unpacking
-        # For a full implementation, one would use a port of the original packer logic
-        # or a library like 'jsbeautifier'.
-        return self.packed_js # Placeholder
+        # Ported logic for P.A.C.K.E.R. unpacking
+        # Matches p,a,c,k,e,d pattern
+        try:
+            pattern = r"}\('(.*)',\s*(.*),\s*(.*),\s*'(.*)'.split\('|'\)"
+            match = re.search(pattern, self.packed_js)
+            if not match: return self.packed_js
+            
+            p, a, c, k = match.groups()
+            a = int(a)
+            c = int(c)
+            k = k.split('|')
+            
+            def e(c):
+                return ('' if c < a else e(int(c / a))) + \
+                       (chr(c % a + 161) if c % a > 35 else str(int(c % a, 36)))
+
+            while c > 0:
+                c -= 1
+                if k[c]:
+                    self.packed_js = re.sub(r'\b' + e(c) + r'\b', k[c], self.packed_js)
+            return self.packed_js
+        except:
+            return self.packed_js
+
+def get_and_unpack(text: str) -> str:
+    unpacker = JsUnpacker(text)
+    if unpacker.detect():
+        return unpacker.unpack()
+    return text
+
+class M3u8Helper:
+    @staticmethod
+    async def generate_m3u8(
+        source: str,
+        m3u8_url: str,
+        referer: str,
+        headers: Optional[Dict[str, str]] = None,
+        name: str = "HLS"
+    ) -> List[Any]: # List[ExtractorLink]
+        from .models import ExtractorLink, ExtractorLinkType
+        
+        # Very basic HLS link generation
+        # In a full implementation, we would parse the M3U8 for resolutions
+        return [ExtractorLink(
+            source=source,
+            name=name,
+            url=m3u8_url,
+            referer=referer,
+            quality=0,
+            type=ExtractorLinkType.M3U8,
+            headers=headers
+        )]

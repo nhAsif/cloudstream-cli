@@ -19,12 +19,12 @@ class FourKHDHubProvider(MainAPI):
     lang: str = "en"
     supported_types = {TvType.Movie, TvType.TvSeries, TvType.Anime}
     
-    TMDB_API = "https://wild-surf-4a0d.phisher1.workers.dev"
-    TMDB_API_KEY = "1865f43a0549ca50d341dd9ab8b29f49"
+    TMDB_API = "https://api.themoviedb.org/3"
+    TMDB_API_KEY = "e6333b32409e02a4a6eba6fb7ff866bb"
     TMDB_IMAGE_BASE = "https://image.tmdb.org/t/p/original"
 
     def __init__(self, session: Optional[Session] = None):
-        self._session = session or Session()
+        self._session = session or Session(verify=False)
         self.headers = {
             "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36"
         }
@@ -209,6 +209,11 @@ class FourKHDHubProvider(MainAPI):
                             hrefs.append(h)
                     
                     if hrefs:
+                        if tmdb_id:
+                            # Add direct players
+                            hrefs.append(f"https://player.videasy.net/tv/{tmdb_id}/{season_num}/{ep_num}")
+                            hrefs.append(f"https://player.autoembed.cc/embed/tv/{tmdb_id}/{season_num}/{ep_num}")
+                        
                         episodes.append(Episode(
                             name=f"Episode {ep_num}",
                             season=season_num,
@@ -270,6 +275,11 @@ class FourKHDHubProvider(MainAPI):
                         h = f"{self.main_url}{h}" if h.startswith("/") else f"{self.main_url}/{h}"
                     hrefs.append(h)
             
+            if tmdb_id:
+                # Add direct players
+                hrefs.append(f"https://player.videasy.net/movie/{tmdb_id}")
+                hrefs.append(f"https://player.autoembed.cc/embed/movie/{tmdb_id}")
+
             return MovieLoadResponse(
                 name=fixed_title,
                 url=url,

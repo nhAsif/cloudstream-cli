@@ -13,6 +13,7 @@ class Session:
         proxy: Optional[str] = None,
         headers: Optional[Dict[str, str]] = None,
         timeout: float = 30.0,
+        verify: bool = True,
     ):
         base_headers = {
             "User-Agent": DEFAULT_USER_AGENT,
@@ -27,6 +28,7 @@ class Session:
             proxy=proxy,
             timeout=timeout,
             follow_redirects=True,
+            verify=verify,
         )
 
     async def get(
