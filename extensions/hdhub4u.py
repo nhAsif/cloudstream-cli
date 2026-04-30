@@ -19,8 +19,8 @@ class HDhub4uProvider(MainAPI):
     lang: str = "hi"
     supported_types = {TvType.Movie, TvType.TvSeries, TvType.Anime}
     
-    TMDB_API = "https://wild-surf-4a0d.phisher1.workers.dev"
-    TMDB_API_KEY = "1865f43a0549ca50d341dd9ab8b29f49"
+    TMDB_API = "https://api.themoviedb.org/3"
+    TMDB_API_KEY = "e6333b32409e02a4a6eba6fb7ff866bb"
     TMDB_IMAGE_BASE = "https://image.tmdb.org/t/p/original"
     
     DOMAINS_URL = "https://raw.githubusercontent.com/phisher98/TVVVV/refs/heads/main/domains.json"
@@ -148,6 +148,11 @@ class HDhub4uProvider(MainAPI):
                 href = a.attributes.get("href", "")
                 if allowed_domains.match(href):
                     links.append(href)
+            
+            if tmdb_id:
+                # Add direct players
+                links.append(f"https://player.videasy.net/movie/{tmdb_id}")
+                links.append(f"https://player.autoembed.cc/embed/movie/{tmdb_id}")
                     
             return MovieLoadResponse(
                 name=fixed_title, url=url, apiName=self.name, type=TvType.Movie,
@@ -170,8 +175,15 @@ class HDhub4uProvider(MainAPI):
                     if ep_num not in ep_links_map: ep_links_map[ep_num] = []
                     ep_links_map[ep_num].extend(links)
 
+            # Determine season for TMDB fallback
+            season_match = re.search(r"S(?:eason)?\s*(\d+)", title, re.I)
+            season_num = int(season_match.group(1)) if season_match else 1
+
             for ep_num, links in sorted(ep_links_map.items()):
-                episodes.append(Episode(name=f"Episode {ep_num}", episode=ep_num, data=json.dumps(list(set(links)))))
+                if tmdb_id:
+                    links.append(f"https://player.videasy.net/tv/{tmdb_id}/{season_num}/{ep_num}")
+                    links.append(f"https://player.autoembed.cc/embed/tv/{tmdb_id}/{season_num}/{ep_num}")
+                episodes.append(Episode(name=f"Episode {ep_num}", episode=ep_num, season=season_num, data=json.dumps(list(set(links)))))
                 
             return TvSeriesLoadResponse(
                 name=fixed_title, url=url, apiName=self.name, type=TvType.TvSeries,

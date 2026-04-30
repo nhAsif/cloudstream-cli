@@ -14,8 +14,10 @@ class HubCloud(ExtractorApi):
             if "hubcloud.php" in url:
                 real_url = url
             else:
-                resp = await session.get(url)
-                if resp.status_code != 200: return
+                resp = await session.get(url, referer=referer)
+                if resp.status_code != 200:
+                    # Try with a different UA maybe or just fail
+                    return
                 parser = session.parse_html(resp.text)
                 raw = parser.css_first("#download")
                 if not raw: return
@@ -28,7 +30,7 @@ class HubCloud(ExtractorApi):
                     base = f"{parsed.scheme}://{parsed.netloc}"
                     real_url = f"{base.rstrip('/')}/{href.lstrip('/')}"
             
-            resp = await session.get(real_url)
+            resp = await session.get(real_url, referer=url)
             if resp.status_code != 200: return
             document = session.parse_html(resp.text)
             size_el = document.css_first("i#size")

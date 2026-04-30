@@ -20,8 +20,8 @@ class FourKHDHubProvider(MainAPI):
     lang: str = "en"
     supported_types = {TvType.Movie, TvType.Anime, TvType.TvSeries}
     
-    TMDB_API = "https://wild-surf-4a0d.phisher1.workers.dev" # Using the one from Kotlin
-    TMDB_API_KEY = "1865f43a0549ca50d341dd9ab8b29f49"
+    TMDB_API = "https://api.themoviedb.org/3"
+    TMDB_API_KEY = "e6333b32409e02a4a6eba6fb7ff866bb"
     TMDB_IMAGE_BASE = "https://image.tmdb.org/t/p/original"
     
     DOMAINS_URL = "https://raw.githubusercontent.com/phisher98/TVVVV/refs/heads/main/domains.json"
@@ -160,17 +160,31 @@ class FourKHDHubProvider(MainAPI):
         poster_el = parser.css_first("meta[property='og:image']")
         poster = poster_el.attributes.get("content") if poster_el else None
         
-        tags = [t.text().strip() for t in parser.css("div.mt-2 span.badge")]
-        # Kotlin checks if "Movies" in tags or "TvSeries"
-        is_movie = "Movies" in tags or "Movie" in tags
+        # New metadata parsing
+        metadata = {}
+        for item in parser.css(".metadata-item"):
+            label_el = item.css_first(".metadata-label")
+            value_el = item.css_first(".metadata-value")
+            if label_el and value_el:
+                metadata[label_el.text().replace(":", "").strip()] = value_el.text().strip()
+
+        is_movie = "Type" in metadata and "Movie" in metadata["Type"] or "Movie" in title or "movie" in url
+        if not is_movie:
+            tags = [t.text().strip() for t in parser.css("div.mt-2 span.badge")]
+            is_movie = "Movies" in tags or "Movie" in tags
+
         tv_type = TvType.Movie if is_movie else TvType.TvSeries
         
-        year_el = parser.css_first("div.mt-2 span")
         year = None
-        if year_el:
-            match = re.search(r"(\d{4})", year_el.text())
-            if match:
-                year = int(match.group(1))
+        if "Release" in metadata:
+            match = re.search(r"(\d{4})", metadata["Release"])
+            if match: year = int(match.group(1))
+        
+        if not year:
+            year_el = parser.css_first("div.mt-2 span")
+            if year_el:
+                match = re.search(r"(\d{4})", year_el.text())
+                if match: year = int(match.group(1))
 
         description_el = parser.css_first("div.content-section p.mt-4")
         description = description_el.text().strip() if description_el else None
@@ -247,6 +261,11 @@ class FourKHDHubProvider(MainAPI):
                             hrefs.append(h)
                     
                     if hrefs:
+                        if tmdb_id:
+                            # Add direct players
+                            hrefs.append(f"https://player.videasy.net/tv/{tmdb_id}/{season_num}/{ep_num}")
+                            hrefs.append(f"https://player.autoembed.cc/embed/tv/{tmdb_id}/{season_num}/{ep_num}")
+                        
                         key = (season_num, ep_num)
                         if key not in episodes_map: episodes_map[key] = []
                         episodes_map[key].extend(hrefs)
@@ -272,7 +291,7 @@ class FourKHDHubProvider(MainAPI):
                 episodes=episodes,
                 actors=actors,
                 score=score,
-                tags=tags
+                tags=list(metadata.values())
             )
         else:
             hrefs = []
@@ -282,6 +301,11 @@ class FourKHDHubProvider(MainAPI):
                     if not h.startswith("http"):
                         h = f"{self.main_url.rstrip('/')}/{h.lstrip('/')}"
                     hrefs.append(h)
+            
+            if tmdb_id:
+                # Add direct players
+                hrefs.append(f"https://player.videasy.net/movie/{tmdb_id}")
+                hrefs.append(f"https://player.autoembed.cc/embed/movie/{tmdb_id}")
 
             return MovieLoadResponse(
                 name=fixed_title,
@@ -296,7 +320,7 @@ class FourKHDHubProvider(MainAPI):
                 plot=fixed_plot,
                 actors=actors,
                 score=score,
-                tags=tags
+                tags=list(metadata.values())
             )
 
     async def load_links(

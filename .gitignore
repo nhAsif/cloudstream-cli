@@ -1,2 +1,6 @@
 graphify-out/
 GEMINI.md
+__pycache__/
+*.pyc
+.gemini/
+cloudstream-extensions-phisher/
